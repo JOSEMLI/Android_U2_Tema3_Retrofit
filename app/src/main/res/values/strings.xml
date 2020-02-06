@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">Android_U2_Tema3_Retrofit</string>
+
+<string-array name="sexo">
+    <item>Masculino</item>
+    <item>Femenino</item>
+</string-array>
 </resources>

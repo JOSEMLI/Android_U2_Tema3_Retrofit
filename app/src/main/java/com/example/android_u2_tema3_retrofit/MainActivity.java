@@ -2,11 +2,13 @@ package com.example.android_u2_tema3_retrofit;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -76,6 +78,9 @@ public class MainActivity extends AppCompatActivity {
       public void onResponse(Call<String> call, Response<String> response) {
 //Exactamente igual a la manera sincrona,la respuesta esta en el body
         Log.e("milogin: ",response.body());
+        //para que cuando estee correcto el login vaya a otra actividad de insertar cliente
+        startActivity(new Intent(MainActivity.this, InserterCliente.class));
+
       }
       //Metodo que se ejecutara cuando ocurrio algun problema
       @Override
@@ -119,4 +124,6 @@ public class MainActivity extends AppCompatActivity {
       return null;
     }
   }
+
+
 }
