@@ -5,6 +5,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.EditText;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import java.io.IOException;
 import java.util.List;
@@ -14,8 +19,13 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
+import retrofit2.converter.scalars.ScalarsConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
+
+  Retrofit retrofit;
+  servicesRetrofit miserviceretrofit;
+
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -28,11 +38,13 @@ public class MainActivity extends AppCompatActivity {
     //reemplazamos por nuestra ruta
     //final String url = "https://testand1.000webhostapp.com/";
     final String url = "https://bamboo-amplitude.000webhostapp.com/";
-    Retrofit retrofit = new Retrofit.Builder()
+    //se cambio de a modo local
+
+     retrofit = new Retrofit.Builder()
         .baseUrl(url)
         .addConverterFactory(GsonConverterFactory.create())
         .build();
-    servicesRetrofit miserviceretrofit = retrofit.create(servicesRetrofit.class);
+     miserviceretrofit = retrofit.create(servicesRetrofit.class);
     Call<List<Cliente>> call = miserviceretrofit.getUsersGet();
 //Apartir de aqui la forma cambia de la manera sincrona a la asincrona
 //basicamente mandamos a llamar el metodo enqueue, y le pasamos como parametro el call back
@@ -53,6 +65,25 @@ public class MainActivity extends AppCompatActivity {
       }
     });
   }
+//añadimos el metodo ingresar
+  public void ingresar(View view) {
+    EditText user=findViewById(R.id.miuser);
+    EditText pass=findViewById(R.id.mipass);
+    Call<String> call = miserviceretrofit.getLoginGet(user.getText().toString(),pass.getText().toString());
+    call.enqueue(new Callback<String>() {
+      //Metodo que se ejecutara cuando no hay problemas y obtenemos respuesta del server
+      @Override
+      public void onResponse(Call<String> call, Response<String> response) {
+//Exactamente igual a la manera sincrona,la respuesta esta en el body
+        Log.e("milogin: ",response.body());
+      }
+      //Metodo que se ejecutara cuando ocurrio algun problema
+      @Override
+      public void onFailure(Call<String> call, Throwable t) {
+        Log.e("milogin",t.toString());// mostrmos el error
+      }
+    });
+  }
 
   public static class Peticion extends AsyncTask<Void,Void,Void> {
     @Override
@@ -62,9 +93,14 @@ public class MainActivity extends AppCompatActivity {
       //final String url = "https://testand1.000webhostapp.com/";
       final String url = "https://bamboo-amplitude.000webhostapp.com/";
 //Creamos el objeto Retrofit
+      //se agrego la parte de gson
+      Gson gson = new GsonBuilder()
+          .setLenient()
+          .create();
       Retrofit retrofit = new Retrofit.Builder()
           .baseUrl(url)//Indicamos la url del servicio
-          .addConverterFactory(GsonConverterFactory.create())//Agregue la fábrica del convertidor para la serialización
+          .addConverterFactory(ScalarsConverterFactory.create())
+          .addConverterFactory(GsonConverterFactory.create(gson))//Agregue la fábrica del convertidor para la serialización
 // y la deserialización de objetos.
           .build();//Cree la instancia de Retrofit utilizando los valores configurados.
 //https://square.github.io/retrofit/2.x/retrofit/retrofit2/Retrofit.Builder.html
