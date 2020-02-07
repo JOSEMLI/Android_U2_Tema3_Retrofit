@@ -40,11 +40,14 @@ public class MainActivity extends AppCompatActivity {
     //reemplazamos por nuestra ruta
     //final String url = "https://testand1.000webhostapp.com/";
     final String url = "https://bamboo-amplitude.000webhostapp.com/";
-    //se cambio de a modo local
-
+    //se cambio de a modo local el retrofit  el miserviceretrofit
+    Gson gson = new GsonBuilder()
+        .setLenient()
+        .create();
      retrofit = new Retrofit.Builder()
         .baseUrl(url)
-        .addConverterFactory(GsonConverterFactory.create())
+         .addConverterFactory(ScalarsConverterFactory.create())
+         .addConverterFactory(GsonConverterFactory.create(gson))
         .build();
      miserviceretrofit = retrofit.create(servicesRetrofit.class);
     Call<List<Cliente>> call = miserviceretrofit.getUsersGet();
@@ -67,28 +70,41 @@ public class MainActivity extends AppCompatActivity {
       }
     });
   }
-//añadimos el metodo ingresar
-  public void ingresar(View view) {
-    EditText user=findViewById(R.id.miuser);
-    EditText pass=findViewById(R.id.mipass);
-    Call<String> call = miserviceretrofit.getLoginGet(user.getText().toString(),pass.getText().toString());
-    call.enqueue(new Callback<String>() {
-      //Metodo que se ejecutara cuando no hay problemas y obtenemos respuesta del server
-      @Override
-      public void onResponse(Call<String> call, Response<String> response) {
-//Exactamente igual a la manera sincrona,la respuesta esta en el body
-        Log.e("milogin: ",response.body());
-        //para que cuando estee correcto el login vaya a otra actividad de insertar cliente
-        startActivity(new Intent(MainActivity.this, InserterCliente.class));
 
+//añadimos el metodo ingresar
+public void ingresar(View view) {
+  EditText user=findViewById(R.id.miuser);
+  EditText pass=findViewById(R.id.mipass);
+  Call<String> call = miserviceretrofit.getLoginGet(user.getText().toString(),pass.getText().toString());
+  call.enqueue(new Callback<String>() {
+    //Metodo que se ejecutara cuando no hay problemas y obtenemos respuesta del server
+    @Override
+    public void onResponse(Call<String> call, Response<String> response) {
+//Exactamente igual a la manera sincrona,la respuesta esta en el body
+      Log.e("milogin: ",response.body());
+      String mirespuesta=response.body();
+      if(mirespuesta.equals("success"))
+        startActivity(new Intent(MainActivity.this, InserterCliente.class));
+      else
+      {
+        runOnUiThread(new Runnable()
+        {
+          @Override
+          public void run()
+          {
+            Toast.makeText(getApplicationContext(), "Ingreso fallido",Toast.LENGTH_SHORT).show();
+          }
+        });
       }
-      //Metodo que se ejecutara cuando ocurrio algun problema
-      @Override
-      public void onFailure(Call<String> call, Throwable t) {
-        Log.e("milogin",t.toString());// mostrmos el error
-      }
-    });
-  }
+
+    }
+    //Metodo que se ejecutara cuando ocurrio algun problema
+    @Override
+    public void onFailure(Call<String> call, Throwable t) {
+      Log.e("milogin",t.toString());// mostrmos el error
+    }
+  });
+}
 
   public static class Peticion extends AsyncTask<Void,Void,Void> {
     @Override
@@ -105,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
       Retrofit retrofit = new Retrofit.Builder()
           .baseUrl(url)//Indicamos la url del servicio
           .addConverterFactory(ScalarsConverterFactory.create())
-          .addConverterFactory(GsonConverterFactory.create(gson))//Agregue la fábrica del convertidor para la serialización
+          .addConverterFactory(GsonConverterFactory.create())//Agregue la fábrica del convertidor para la serialización
 // y la deserialización de objetos.
           .build();//Cree la instancia de Retrofit utilizando los valores configurados.
 //https://square.github.io/retrofit/2.x/retrofit/retrofit2/Retrofit.Builder.html
